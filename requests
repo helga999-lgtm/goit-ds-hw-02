@@ -1,0 +1,59 @@
+-- 1. Отримати всі завдання певного користувача (наприклад, для user_id = 1)
+SELECT * FROM tasks WHERE user_id = 1;
+
+-- 2. Вибрати завдання за певним статусом (використовуємо підзапит для 'new')
+SELECT * FROM tasks
+WHERE status_id = (SELECT id FROM status WHERE name = 'new');
+
+-- 3. Оновити статус конкретного завдання (наприклад, переводимо завдання id = 3 в 'in progress')
+UPDATE tasks
+SET status_id = (SELECT id FROM status WHERE name = 'in progress')
+WHERE id = 3;
+
+-- 4. Отримати список користувачів, які не мають жодного завдання (через NOT IN та підзапит)
+SELECT * FROM users
+WHERE id NOT IN (SELECT DISTINCT user_id FROM tasks WHERE user_id IS NOT NULL);
+
+-- 5. Додати нове завдання для конкретного користувача (user_id = 4)
+INSERT INTO tasks (title, description, status_id, user_id)
+VALUES ('Підготувати звіт', 'Здати до кінця тижня', 1, 4);
+
+-- 6. Отримати всі завдання, які ще не завершено (статус не рівний 'completed')
+SELECT * FROM tasks
+WHERE status_id != (SELECT id FROM status WHERE name = 'completed');
+
+-- 7. Видалити конкретне завдання за його id (наприклад, id = 5)
+DELETE FROM tasks WHERE id = 5;
+
+-- 8. Знайти користувачів з певною електронною поштою (наприклад, чий email починається на 'a')
+SELECT * FROM users WHERE email LIKE 'a%';
+
+-- 9. Оновити ім'я користувача (змінюємо ім'я користувача з id = 2)
+UPDATE users SET fullname = 'Нове Ім''я Користувача' WHERE id = 2;
+
+-- 10. Отримати кількість завдань для кожного статусу (групування GROUP BY)
+SELECT s.name, COUNT(t.id) AS count_tasks
+FROM status s
+LEFT JOIN tasks t ON s.id = t.status_id
+GROUP BY s.name;
+
+-- 11. Отримати завдання користувачів із доменною частиною '%@example.com' (JOIN + LIKE)
+SELECT t.* FROM tasks t
+JOIN users u ON t.user_id = u.id
+WHERE u.email LIKE '%@example.com';
+
+-- 12. Отримати список завдань, що не мають опису (перевірка на NULL або порожній рядок)
+SELECT * FROM tasks WHERE description IS NULL OR description = '';
+
+-- 13. Вибрати користувачів та їхні завдання, які перебувають у статусі 'in progress' (INNER JOIN)
+SELECT u.fullname, t.title, s.name AS status_name
+FROM users u
+INNER JOIN tasks t ON u.id = t.user_id
+INNER JOIN status s ON t.status_id = s.id
+WHERE s.name = 'in progress';
+
+-- 14. Отримати користувачів та кількість їхніх завдань (LEFT JOIN, щоб показати навіть тих, у кого 0 завдань)
+SELECT u.id, u.fullname, COUNT(t.id) AS total_tasks
+FROM users u
+LEFT JOIN tasks t ON u.id = t.user_id
+GROUP BY u.id, u.fullname;
